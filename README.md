@@ -198,9 +198,9 @@ Notice, that fminsearch probably use caches if you run this file multiple times.
     
 This fork introduces
 -----------
-## Minor code style changes
-## CMakeLists build chain (hopefully more cross platform)
-## ... (more to come)
+- Minor code style changes
+- CMakeLists build chain (hopefully more cross platform)
+- ... (more to come)
 
 
 [eigen3]: http://eigen.tuxfamily.org/
