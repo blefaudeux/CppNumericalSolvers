@@ -6,6 +6,8 @@
 #include <functional>
 #include "LbfgsSolver.h"
 
+/* author : Patrick Wieschollek - see https://github.com/PatWie/CppNumericalSolvers */
+
 int example000(void);
 int example001(void);
 int example002(void);

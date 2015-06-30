@@ -1,4 +1,8 @@
+# Skipped binaries
 build/*
+
+# User specific files
+*.user
 
 # Compiled Object files
 *.slo

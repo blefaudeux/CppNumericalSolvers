@@ -12,6 +12,8 @@
 
 #define PRECISION 1e-4
 
+/* author : Patrick Wieschollek - see https://github.com/PatWie/CppNumericalSolvers */
+
 auto rosenbrock = [](const pwie::Vector &x) -> double {
   const double t1 = (1 - x[0]);
   const double t2 = (x[1] - x[0] * x[0]);
