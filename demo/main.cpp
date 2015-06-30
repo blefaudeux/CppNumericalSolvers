@@ -4,6 +4,7 @@
  */
 #include <iostream>
 #include <functional>
+#include <string>
 #include "LbfgsSolver.h"
 
 /* author : Patrick Wieschollek - see https://github.com/PatWie/CppNumericalSolvers */
@@ -25,17 +26,21 @@ int main(void)
     return 0;
 }
 
-
-
-int example000(void)
+auto printExample = [](std::string name)
 {
 
     std::cout << std::endl << std::endl
-              << "example checkgradient:    " << std::endl
+              << "Example "<< name << std::endl
               << "------------------------------------------" << std::endl;
+};
+
+int example000(void)
+{
+    printExample("checkgradient");
+
     // check your gradient!
     // create function
-    auto rosenbrock = [](const Vector & x) -> double
+    auto rosenbrock = [](Vector const & x) -> double
     {
         const double t1 = (1 - x[0]);
         const double t2 = (x[1] - x[0] * x[0]);
@@ -43,14 +48,14 @@ int example000(void)
     };
 
     // create derivative of function
-    auto Drosenbrock = [](const Vector x, Vector & grad) -> void
+    auto Drosenbrock = [](Vector const & x, Vector & grad) -> void
     {
         grad[0]  = -2 * (1 - x[0]) + 200 * (x[1] - x[0] * x[0]) * (-2 * x[0]);
         grad[1]  = 200 * (x[1] - x[0] * x[0]);
     };
 
     // create derivative of function
-    auto WrongDrosenbrock = [](const Vector x, Vector & grad) -> void
+    auto WrongDrosenbrock = [](Vector const & x, Vector & grad) -> void
     {
         grad[0]  = -2 * (1 - x[0]) + 200 * (x[1] - x[0] * x[0]) * (2 * x[0]); // <<-- last term wrong sign
         grad[1]  = 200 * (x[1] - x[0] * x[0]);
@@ -70,9 +75,20 @@ int example000(void)
     {
         std::cout << "gradient probably correct" << std::endl;
     }
-    std::cout << "check wrong gradient:   ";
-    checkGradient(rosenbrock, x, dx_wrong);
+    else
+    {
+        std::cout << "gradient check failed "<< std::endl;
+    }
 
+    std::cout << "check wrong gradient:   ";
+    if ( !checkGradient(rosenbrock, x, dx_wrong) )
+    {
+        std::cout << "gradient probably wrong" << std::endl;
+    }
+    else
+    {
+        std::cout << "gradient check failed "<< std::endl;
+    }
 
     return 0;
 }
@@ -80,12 +96,10 @@ int example000(void)
 int example001(void)
 {
 
-    std::cout << std::endl << std::endl
-              << "example optimization without gradient:    " << std::endl
-              << "------------------------------------------" << std::endl;
+    printExample("optimization without gradient:");
 
     // minimize rosenbrock function only using the objective function
-    auto objectiveFunction = [](const Vector & x) -> double
+    auto objectiveFunction = [](Vector const & x) -> double
     {
         // rosenbrock
         const double t1 = (1 - x[0]);
@@ -101,7 +115,6 @@ int example001(void)
     LbfgsSolver g;
     g.solve(x0, objectiveFunction);
 
-    std::cout << std::endl << std::endl;
     std::cout << "result:    " << x0.transpose();
     std::cout << std::endl;
     std::cout << "should be: " << "1 1" << std::endl;
@@ -114,12 +127,10 @@ int example001(void)
 int example002(void)
 {
 
-    std::cout << std::endl << std::endl
-              << "example optimization with  gradient:    " << std::endl
-              << "------------------------------------------" << std::endl;
+    printExample("optimization with  gradient:");
 
     // minimize rosenbrock function using predefined objective function and vector of partial derivatives
-    auto objectiveFunction = [](const Vector & x) -> double
+    auto objectiveFunction = [](Vector const & x) -> double
     {
         // rosenbrock
         const double t1 = (1 - x[0]);
@@ -128,7 +139,7 @@ int example002(void)
     };
 
     // create derivative of function
-    auto partialDerivatives = [](const Vector x, Vector & grad) -> void
+    auto partialDerivatives = [](Vector const x, Vector & grad) -> void
     {
         grad[0]  = -2 * (1 - x[0]) + 200 * (x[1] - x[0] * x[0]) * (-2 * x[0]);
         grad[1]  = 200 * (x[1] - x[0] * x[0]);
@@ -142,7 +153,6 @@ int example002(void)
     LbfgsSolver g;
     g.solve(x0, objectiveFunction, partialDerivatives);
 
-    std::cout << std::endl << std::endl;
     std::cout << "result:    " << x0.transpose();
     std::cout << std::endl;
     std::cout << "should be: " << "1 1" << std::endl;
@@ -155,10 +165,7 @@ int example002(void)
 
 int example003(void)
 {
-
-    std::cout << std::endl << std::endl
-              << "example optimization least squares:    " << std::endl
-              << "------------------------------------------" << std::endl;
+    printExample("optimization least squares:");
 
     Matrix A(3, 2);
     A << 0.2, 0.25, 0.4, 0.5, 0.4, 0.25;
@@ -166,14 +173,14 @@ int example003(void)
     y << 0.9, 1.7, 1.2;
 
     // least squares
-    auto objectiveFunction = [&](const Vector & x) -> double
+    auto objectiveFunction = [&](Vector const & x) -> double
     {
         Vector tmp = A * x - y;
         return tmp.dot(tmp);
     };
 
     // create derivative of function
-    auto partialDerivatives = [&](const Vector x, Vector & grad) -> void
+    auto partialDerivatives = [&](Vector const & x, Vector & grad) -> void
     {
         grad = Vector(x.rows());
         grad = 2 * A.transpose() * (A * x) - 2 * A.transpose() * y;
@@ -187,12 +194,9 @@ int example003(void)
     LbfgsSolver g;
     g.solve(x0, objectiveFunction, partialDerivatives);
 
-    std::cout << std::endl << std::endl;
     std::cout << "result:    " << x0.transpose();
     std::cout << std::endl;
     std::cout << "should be:  " << "1.7 2.08" << std::endl;
-
-
 
     return 0;
 }

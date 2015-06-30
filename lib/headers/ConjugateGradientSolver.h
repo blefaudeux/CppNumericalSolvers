@@ -26,16 +26,16 @@
 namespace pwie
 {
 
-class ConjugateGradientSolver : public ISolver
-{
-public:
-    ConjugateGradientSolver();
-    void internalSolve(Vector & x0,
-                       const function_t & FunctionValue,
-                       const gradient_t & FunctionGradient,
-                       const hessian_t & FunctionHessian = EMPTY_HESSIAN);
+    class ConjugateGradientSolver : public ISolver
+    {
+        public:
+            ConjugateGradientSolver();
+            void internalSolve(Vector & x0,
+                               function_t const & FunctionValue,
+                               gradient_t const & FunctionGradient,
+                               hessian_t  const & FunctionHessian = EMPTY_HESSIAN);
 
-};
+    };
 
 } /* namespace pwie */
 

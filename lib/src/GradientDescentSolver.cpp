@@ -26,34 +26,34 @@
 namespace pwie
 {
 
-GradientDescentSolver::GradientDescentSolver() : ISolver()
-{
-
-
-}
-
-
-void GradientDescentSolver::internalSolve(Vector & x,
-        const function_t & FunctionValue,
-        const gradient_t & FunctionGradient,
-        const hessian_t & FunctionHessian)
-{
-    UNUSED(FunctionHessian);
-    Vector grad(x.rows());
-
-    size_t iter = 0;
-    do
+    GradientDescentSolver::GradientDescentSolver() : ISolver()
     {
-        FunctionGradient(x, grad);
-        const double rate = Armijo::linesearch(x, -grad, FunctionValue, FunctionGradient) ;
 
-        x = x - rate * grad;
-        iter++;
+
     }
-    while((grad.lpNorm<Eigen::Infinity>() > settings.gradTol) && (iter < settings.maxIter));
 
 
-}
+    void GradientDescentSolver::internalSolve(Vector & x,
+                                              function_t const & FunctionValue,
+                                              gradient_t const & FunctionGradient,
+                                              hessian_t  const & FunctionHessian)
+    {
+        UNUSED(FunctionHessian);
+        Vector grad(x.rows());
+
+        size_t iter = 0;
+        do
+        {
+            FunctionGradient(x, grad);
+            const double rate = Armijo::linesearch(x, -grad, FunctionValue, FunctionGradient) ;
+
+            x = x - rate * grad;
+            iter++;
+        }
+        while((grad.lpNorm<Eigen::Infinity>() > settings.gradTol) && (iter < settings.maxIter));
+
+
+    }
 }
 
 /* namespace pwie */

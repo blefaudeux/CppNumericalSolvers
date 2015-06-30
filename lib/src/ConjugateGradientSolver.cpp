@@ -21,54 +21,54 @@
  */
 
 #include "ConjugateGradientSolver.h"
- #include "linesearch/Armijo.h"
+#include "linesearch/Armijo.h"
 #include <iostream>
 namespace pwie
 {
 
-ConjugateGradientSolver::ConjugateGradientSolver() : ISolver()
-{
+    ConjugateGradientSolver::ConjugateGradientSolver() : ISolver()
+    {
 
 
-}
-
-
-void ConjugateGradientSolver::internalSolve(Vector & x,
-        const function_t & objective,
-        const gradient_t & gradient,
-        const hessian_t & hessian)
-{
-    UNUSED(hessian);
-    size_t iter = 0;
-
-    Vector grad(x.rows());
-    Vector grad_old(x.rows());
-    Vector Si(x.rows());
-    Vector Si_old(x.rows());
-    do
-    { 
-        gradient(x, grad);
-
-        if(iter==0){
-            Si = -grad;
-        }else{
-            const double beta = grad.dot(grad)/(grad_old.dot(grad_old));
-            Si = -grad + beta*Si_old;
-        }
-        
-        const double rate = Armijo::linesearch(x, Si, objective, gradient) ;
-
-        x = x + rate * Si;
-
-        iter++;
-        grad_old = grad;
-        Si_old = Si;
-        
     }
-    while((grad.lpNorm<Eigen::Infinity>() > settings.gradTol) && (iter < settings.maxIter));
 
 
-}
+    void ConjugateGradientSolver::internalSolve(Vector & x,
+                                                function_t const & objective,
+                                                gradient_t const & gradient,
+                                                hessian_t  const & hessian)
+    {
+        UNUSED(hessian);
+        size_t iter = 0;
+
+        Vector grad(x.rows());
+        Vector grad_old(x.rows());
+        Vector Si(x.rows());
+        Vector Si_old(x.rows());
+        do
+        {
+            gradient(x, grad);
+
+            if(iter==0){
+                Si = -grad;
+            }else{
+                const double beta = grad.dot(grad)/(grad_old.dot(grad_old));
+                Si = -grad + beta*Si_old;
+            }
+
+            const double rate = Armijo::linesearch(x, Si, objective, gradient) ;
+
+            x = x + rate * Si;
+
+            iter++;
+            grad_old = grad;
+            Si_old = Si;
+
+        }
+        while((grad.lpNorm<Eigen::Infinity>() > settings.gradTol) && (iter < settings.maxIter));
+
+
+    }
 }
 
 /* namespace pwie */

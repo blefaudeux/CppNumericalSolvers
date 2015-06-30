@@ -26,51 +26,51 @@
 namespace pwie
 {
 
-BfgsSolver::BfgsSolver() : ISolver()
-{
-
-}
-
-
-void BfgsSolver::internalSolve(Vector & x,
-                               const function_t & FunctionValue,
-                               const gradient_t & FunctionGradient,
-                               const hessian_t & FunctionHessian)
-{
-    UNUSED(FunctionHessian);
-
-    const size_t DIM = x.rows();
-    size_t iter = 0;
-    Matrix H = Matrix::Identity(DIM, DIM);
-    Vector grad(DIM);
-
-    Vector x_old = x;
-
-    do
+    BfgsSolver::BfgsSolver() : ISolver()
     {
-        FunctionGradient(x, grad);
-        Vector p = -1 * H * grad;
-        const double rate = WolfeRule::linesearch(x, p, FunctionValue, FunctionGradient) ;
-        x = x + rate * p;
-        Vector grad_old = grad;
-        FunctionGradient(x, grad);
-
-        Vector s = x - x_old;
-        Vector y = grad - grad_old;
-
-        const double rho = 1.0 / y.dot(s);
-        if(iter == 0)
-        {
-            H = ((y.dot(s)) / (y.dot(y)) * Matrix::Identity(DIM, DIM));
-        }
-        H = H - rho * (s * (y.transpose() * H) + (H * y) * s.transpose()) + rho * rho * (y.dot(H * y) + 1.0 / rho) * (s * s.transpose());
-        x_old = x;
-        iter++;
 
     }
-    while((grad.lpNorm<Eigen::Infinity>() > settings.gradTol) && (iter < settings.maxIter));
 
-}
+
+    void BfgsSolver::internalSolve(Vector & x,
+                                   function_t const & FunctionValue,
+                                   gradient_t const & FunctionGradient,
+                                   hessian_t  const & FunctionHessian)
+    {
+        UNUSED(FunctionHessian);
+
+        const size_t DIM = x.rows();
+        size_t iter = 0;
+        Matrix H = Matrix::Identity(DIM, DIM);
+        Vector grad(DIM);
+
+        Vector x_old = x;
+
+        do
+        {
+            FunctionGradient(x, grad);
+            Vector p = -1 * H * grad;
+            const double rate = WolfeRule::linesearch(x, p, FunctionValue, FunctionGradient) ;
+            x = x + rate * p;
+            Vector grad_old = grad;
+            FunctionGradient(x, grad);
+
+            Vector s = x - x_old;
+            Vector y = grad - grad_old;
+
+            const double rho = 1.0 / y.dot(s);
+            if(iter == 0)
+            {
+                H = ((y.dot(s)) / (y.dot(y)) * Matrix::Identity(DIM, DIM));
+            }
+            H = H - rho * (s * (y.transpose() * H) + (H * y) * s.transpose()) + rho * rho * (y.dot(H * y) + 1.0 / rho) * (s * s.transpose());
+            x_old = x;
+            iter++;
+
+        }
+        while((grad.lpNorm<Eigen::Infinity>() > settings.gradTol) && (iter < settings.maxIter));
+
+    }
 }
 
 /* namespace pwie */

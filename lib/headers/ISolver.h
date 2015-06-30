@@ -32,27 +32,36 @@ namespace pwie
 
 
 
-class ISolver
-{
+    class ISolver
+    {
 
-public:
-    Options settings;
-    ISolver();
-    virtual ~ISolver();
+        public:
+            Options settings;
+            ISolver();
+            virtual ~ISolver();
 
-    void solve(Vector & x0,
-               const function_t & FunctionValue,
-               const gradient_t & FunctionGradient = std::function<void(const Eigen::VectorXd & x, Eigen::VectorXd & grad)>(),
-               const hessian_t & FunctionHessian = EMPTY_HESSIAN);
+            void solve(Vector & x0,
+                       const function_t & FunctionValue,
+                       const gradient_t & FunctionGradient = std::function<void(const Eigen::VectorXd & x, Eigen::VectorXd & grad)>(),
+                       const hessian_t & FunctionHessian = EMPTY_HESSIAN);
 
-    virtual void internalSolve(Vector & x0,
-                               const function_t & FunctionValue,
-                               const gradient_t & FunctionGradient,
-                               const hessian_t & FunctionHessian = EMPTY_HESSIAN) = 0;
-    double linesearch(const Vector & x, const Vector & direction, const function_t & FunctionValue, const gradient_t & FunctionGradient);
-    double linesearch(const Vector & x, const Vector & direction, const Eigen::MatrixXd & hessian, const function_t & FunctionValue, const gradient_t & FunctionGradient);
+            virtual void internalSolve(Vector & x0,
+                                       const function_t & FunctionValue,
+                                       const gradient_t & FunctionGradient,
+                                       const hessian_t & FunctionHessian = EMPTY_HESSIAN) = 0;
 
-};
+            static double linesearch(Vector const & x,
+                                     Vector const & direction,
+                                     function_t const & FunctionValue,
+                                     gradient_t const & FunctionGradient);
+
+            static double linesearch( Vector const & x,
+                                      Vector const & direction,
+                                      Eigen::MatrixXd const & hessian,
+                                      function_t const & FunctionValue,
+                                      gradient_t const & FunctionGradient);
+
+    };
 
 } /* namespace pwie */
 

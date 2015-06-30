@@ -31,57 +31,57 @@
 
 namespace pwie
 {
-typedef std::function<double(const Eigen::VectorXd & x)> function_t;
-typedef std::function<void(const Eigen::VectorXd & x, Eigen::VectorXd & gradient)> gradient_t;
-typedef std::function<void(const Eigen::VectorXd & x, Eigen::MatrixXd & hessian)> hessian_t;
-typedef Eigen::MatrixXd Matrix;
-typedef Eigen::VectorXd Vector;
-typedef Eigen::VectorXd::Scalar Scalar;
-typedef unsigned int uint;
+    typedef std::function<double(const Eigen::VectorXd & x)> function_t;
+    typedef std::function<void(const Eigen::VectorXd & x, Eigen::VectorXd & gradient)> gradient_t;
+    typedef std::function<void(const Eigen::VectorXd & x, Eigen::MatrixXd & hessian)> hessian_t;
+    typedef Eigen::MatrixXd Matrix;
+    typedef Eigen::VectorXd Vector;
+    typedef Eigen::VectorXd::Scalar Scalar;
+    typedef unsigned int uint;
 
-typedef struct Options
-{
-    double gradTol;
-    double rate;
-    size_t maxIter;
-    size_t m;
-
-    Options()
+    typedef struct Options
     {
-        rate = 0.00005;
-        maxIter = 100000;
-        gradTol = 1e-5;
-        m = 10;
+            double gradTol;
+            double rate;
+            size_t maxIter;
+            size_t m;
 
+            Options()
+            {
+                rate = 0.00005;
+                maxIter = 100000;
+                gradTol = 1e-5;
+                m = 10;
+
+            }
+    } Options;
+
+    bool checkGradient(const function_t & FunctionValue, const Vector & x, const Vector & grad, const double eps = 1e-5);
+    void computeGradient(const function_t & FunctionValue, const Vector & x, Vector & grad, const double eps = 1e-5);
+    void computeHessian(const function_t & FunctionValue, const Vector & x, Matrix & hessian, const double eps = 1e-1);
+
+    const double EPS = 2.2204e-016;
+
+    template<typename T>
+    bool AssertSimiliar(T a, T b)
+    {
+        return fabs(a - b) <=  1e-2;
     }
-} Options;
-
-bool checkGradient(const function_t & FunctionValue, const Vector & x, const Vector & grad, const double eps = 1e-5);
-void computeGradient(const function_t & FunctionValue, const Vector & x, Vector & grad, const double eps = 1e-5);
-void computeHessian(const function_t & FunctionValue, const Vector & x, Matrix & hessian, const double eps = 1e-1);
-
-const double EPS = 2.2204e-016;
-
-template<typename T>
-bool AssertSimiliar(T a, T b)
-{
-    return fabs(a - b) <=  1e-2;
-}
-template<typename T>
-bool AssertGreaterThan(T a, T b)
-{
-    return (a - b) > ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * 1e-3);
-}
-template<typename T>
-bool AssertLessThan(T a, T b)
-{
-    return (b - a) > ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * 1e-3);
-}
-template<typename T>
-bool AssertEqual(T a, T b)
-{
-    return (a == b);
-}
+    template<typename T>
+    bool AssertGreaterThan(T a, T b)
+    {
+        return (a - b) > ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * 1e-3);
+    }
+    template<typename T>
+    bool AssertLessThan(T a, T b)
+    {
+        return (b - a) > ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * 1e-3);
+    }
+    template<typename T>
+    bool AssertEqual(T a, T b)
+    {
+        return (a == b);
+    }
 }
 
 #define min(a,b) (((a)<(b))?(a):(b))

@@ -25,61 +25,90 @@
 namespace pwie
 {
 
-ISolver::ISolver()
-{
-    settings = Options();
-
-}
-
-ISolver::~ISolver()
-{
-    // TODO Auto-generated destructor stub
-}
-
-void ISolver::solve(Eigen::VectorXd & x0,
-                    const function_t & FunctionValue,
-                    const gradient_t & FunctionGradient,
-                    const hessian_t & FunctionHessian)
-{
-
-    auto derivative = FunctionGradient;
-    if(!derivative)
+    ISolver::ISolver()
     {
-        derivative = [&](const Vector x, Vector & grad) -> void
+        settings = Options();
+
+    }
+
+    ISolver::~ISolver()
+    {
+        // TODO Auto-generated destructor stub
+    }
+
+    void ISolver::solve(Eigen::VectorXd & x0,
+                        const function_t & FunctionValue,
+                        const gradient_t & FunctionGradient,
+                        const hessian_t & FunctionHessian)
+    {
+
+        auto derivative = FunctionGradient;
+        if(!derivative)
         {
-            grad = Vector::Zero(x.rows());
-            computeGradient(FunctionValue, x , grad);
-        };
+            derivative = [&](const Vector x, Vector & grad) -> void
+            {
+                grad = Vector::Zero(x.rows());
+                computeGradient(FunctionValue, x , grad);
+            };
+        }
+        internalSolve(x0, FunctionValue, derivative, FunctionHessian);
+
     }
-    internalSolve(x0, FunctionValue, derivative, FunctionHessian);
 
-}
-
-double ISolver::linesearch(const Vector & x, const Vector & direction,
-                           const function_t & FunctionValue,
-                           const gradient_t & FunctionGradient)
-{
-
-    const double alpha = 0.2;
-    const double beta = 0.9;
-    double t = 1.0;
-
-    double f = FunctionValue(x + t * direction);
-    const double f_in = FunctionValue(x);
-    Vector grad(x.rows());
-    FunctionGradient(x, grad);
-    const double Cache = alpha * grad.dot(direction);
-
-    while(f > f_in + t * Cache)
+    /* static */ double ISolver::linesearch(const Vector & x, const Vector & direction,
+                                            const function_t & FunctionValue,
+                                            const gradient_t & FunctionGradient)
     {
-        t *= beta;
-        f = FunctionValue(x + t * direction);
+
+        const double alpha = 0.2;
+        const double beta = 0.9;
+        double t = 1.0;
+
+        double f = FunctionValue(x + t * direction);
+        const double f_in = FunctionValue(x);
+        Vector grad(x.rows());
+        FunctionGradient(x, grad);
+        const double Cache = alpha * grad.dot(direction);
+
+        while(f > f_in + t * Cache)
+        {
+            t *= beta;
+            f = FunctionValue(x + t * direction);
+        }
+
+        return t;
+
     }
 
-    return t;
+    /* static */ double ISolver::linesearch(Vector const & x,
+                                            Vector const & direction,
+                                            Eigen::MatrixXd const & hessian,
+                                            function_t const & FunctionValue,
+                                            gradient_t const & FunctionGradient)
+    {
 
-}
-/*
+        const double alpha = 0.2;
+        const double beta = 0.9;
+        double t = 1.0;
+
+        double f = FunctionValue(x + t * direction);
+        const double f_in = FunctionValue(x);
+        Vector grad(x.rows());
+        FunctionGradient(x, grad);
+        const double Cache = alpha * grad.dot(direction) + 0.5*alpha*direction.transpose()*(hessian*direction);
+
+        while(f > f_in + t * Cache)
+        {
+            t *= beta;
+            f = FunctionValue(x + t * direction);
+        }
+
+        return t;
+    }
+
+
+
+    /*
 function alphas = strongwolfe(f,d,x0,alpham)
 % function alphas = strongwolfe(f,d,x0,alpham)
 % Line search algorithm satisfying strong Wolfe conditions
@@ -120,7 +149,7 @@ while (1 ~= 2)
   i = i+1;
 end
 */
-/*double ISolver::linesearch(const Vector & x, const Vector & d,
+    /*double ISolver::linesearch(const Vector & x, const Vector & d,
                            const function_t & FunctionValue,
                            const gradient_t & FunctionGradient){
     double alpha0 = 0;
@@ -163,31 +192,5 @@ end
 
 }*/
 
-
-double ISolver::linesearch(const Vector & x, const Vector & direction,
-                         const Eigen::MatrixXd & hessian,
-                           const function_t & FunctionValue,
-                           const gradient_t & FunctionGradient)
-{
-
-    const double alpha = 0.2;
-    const double beta = 0.9;
-    double t = 1.0;
-
-    double f = FunctionValue(x + t * direction);
-    const double f_in = FunctionValue(x);
-    Vector grad(x.rows());
-    FunctionGradient(x, grad);
-    const double Cache = alpha * grad.dot(direction) + 0.5*alpha*direction.transpose()*(hessian*direction);
-
-    while(f > f_in + t * Cache)
-    {
-        t *= beta;
-        f = FunctionValue(x + t * direction);
-    }
-
-    return t;
-
-}
 
 } /* namespace pwie */

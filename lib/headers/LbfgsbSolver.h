@@ -27,55 +27,55 @@
 namespace pwie
 {
 
-/* coded from scratch !!!
+    /* coded from scratch !!!
  * based on the paper
  * A LIMITED MEMORY ALGORITHM FOR BOUND CONSTRAINED OPTIMIZATION
  * (Byrd, Lu, Nocedal, Zhu)
  */
-class LbfgsbSolver : public ISolver
-{
-    Vector lb;
-    Vector ub;
-    std::list<Vector> xHistory;
+    class LbfgsbSolver : public ISolver
+    {
+            Vector lb;
+            Vector ub;
+            std::list<Vector> xHistory;
 
-    function_t FunctionObjectiveOracle_;
-    gradient_t FunctionGradientOracle_;
+            function_t FunctionObjectiveOracle_;
+            gradient_t FunctionGradientOracle_;
 
-    Matrix W, M;
-    double theta;
-    int DIM;
-    bool hasbounds = false;
-    bool hasbound_lower = false;
-    bool hasbound_upper = false;
-private:
-    /// <summary>
-    /// find cauchy point in x
-    /// </summary>
-    /// <parameter name="x">start in x</parameter>
-    void GetGeneralizedCauchyPoint(Vector & x, Vector & g, Vector & x_cauchy, Vector & c);
-    /// <summary>
-    /// find valid alpha for (8.5)
-    /// </summary>
-    /// <parameter name="x_cp">cauchy point</parameter>
-    /// <parameter name="du">unconstrained solution of subspace minimization</parameter>
-    /// <parameter name="FreeVariables">flag (1 if is free variable and 0 if is not free variable)</parameter>
-    double FindAlpha(Vector & x_cp, Vector & du, std::vector<int> & FreeVariables);
-    
-    /// <summary>
-    /// direct primal approach
-    /// </summary>
-    /// <parameter name="x">start in x</parameter>
-    void SubspaceMinimization(Vector & x_cauchy, Vector & x, Vector & c, Vector & g, Vector & SubspaceMin);
-public:
-    LbfgsbSolver();
-    void internalSolve(Vector & x0,
-                       const function_t & FunctionValue,
-                       const gradient_t & FunctionGradient,
-                       const hessian_t & FunctionHessian = EMPTY_HESSIAN);
+            Matrix W, M;
+            double theta;
+            int DIM;
+            bool hasbounds = false;
+            bool hasbound_lower = false;
+            bool hasbound_upper = false;
+        private:
+            /// <summary>
+            /// find cauchy point in x
+            /// </summary>
+            /// <parameter name="x">start in x</parameter>
+            void GetGeneralizedCauchyPoint(Vector & x, Vector & g, Vector & x_cauchy, Vector & c);
+            /// <summary>
+            /// find valid alpha for (8.5)
+            /// </summary>
+            /// <parameter name="x_cp">cauchy point</parameter>
+            /// <parameter name="du">unconstrained solution of subspace minimization</parameter>
+            /// <parameter name="FreeVariables">flag (1 if is free variable and 0 if is not free variable)</parameter>
+            double FindAlpha(Vector & x_cp, Vector & du, std::vector<int> & FreeVariables);
 
-    void setLowerBound(const Vector & lower);
-    void setUpperBound(const Vector & upper);
-};
+            /// <summary>
+            /// direct primal approach
+            /// </summary>
+            /// <parameter name="x">start in x</parameter>
+            void SubspaceMinimization(Vector & x_cauchy, Vector & x, Vector & c, Vector & g, Vector & SubspaceMin);
+        public:
+            LbfgsbSolver();
+            void internalSolve(Vector & x0,
+                               const function_t & FunctionValue,
+                               const gradient_t & FunctionGradient,
+                               const hessian_t & FunctionHessian = EMPTY_HESSIAN);
+
+            void setLowerBound(const Vector & lower);
+            void setUpperBound(const Vector & upper);
+    };
 
 } /* namespace pwie */
 

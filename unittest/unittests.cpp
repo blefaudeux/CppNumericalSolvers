@@ -19,11 +19,13 @@ auto rosenbrock = [](const pwie::Vector &x) -> double {
   const double t2 = (x[1] - x[0] * x[0]);
   return   t1 * t1 + 100 * t2 * t2;
 };
+
 auto Drosenbrock = [](const pwie::Vector x, pwie::Vector &grad) -> void {
   grad = pwie::Vector::Zero(2);
   grad[0]  = -2 * (1 - x[0]) + 200 * (x[1] - x[0] * x[0]) * (-2 * x[0]);
   grad[1]  = 200 * (x[1] - x[0] * x[0]);
 };
+
 auto DDrosenbrock = [](const pwie::Vector x, pwie::Matrix &hes) -> void {
   hes = pwie::Matrix::Zero(x.rows(), x.rows());
   hes(0, 0) = 1200 * x[0] * x[0] - 400 * x[1] + 1;
