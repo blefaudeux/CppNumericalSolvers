@@ -36,10 +36,10 @@ namespace pwie
         // TODO Auto-generated destructor stub
     }
 
-    void ISolver::solve(Eigen::VectorXd & x0,
-                        const function_t & FunctionValue,
-                        const gradient_t & FunctionGradient,
-                        const hessian_t & FunctionHessian)
+    void ISolver::solve( Eigen::VectorXd & x0,
+                         function_t const & FunctionValue,
+                         gradient_t const & FunctionGradient,
+                         hessian_t  const & FunctionHessian )
     {
 
         auto derivative = FunctionGradient;
@@ -55,9 +55,10 @@ namespace pwie
 
     }
 
-    /* static */ double ISolver::linesearch(const Vector & x, const Vector & direction,
-                                            const function_t & FunctionValue,
-                                            const gradient_t & FunctionGradient)
+    /* static */ double ISolver::linesearch( Vector const & x,
+                                             Vector const & direction,
+                                             function_t const & FunctionValue,
+                                             gradient_t const & FunctionGradient )
     {
 
         const double alpha = 0.2;
@@ -80,11 +81,11 @@ namespace pwie
 
     }
 
-    /* static */ double ISolver::linesearch(Vector const & x,
-                                            Vector const & direction,
-                                            Eigen::MatrixXd const & hessian,
-                                            function_t const & FunctionValue,
-                                            gradient_t const & FunctionGradient)
+    /* static */ double ISolver::linesearch( Vector const & x,
+                                             Vector const & direction,
+                                             Eigen::MatrixXd const & hessian,
+                                             function_t const & FunctionValue,
+                                             gradient_t const & FunctionGradient )
     {
 
         const double alpha = 0.2;

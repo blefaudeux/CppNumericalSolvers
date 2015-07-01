@@ -40,26 +40,26 @@ namespace pwie
             ISolver();
             virtual ~ISolver();
 
-            void solve(Vector & x0,
-                       const function_t & FunctionValue,
-                       const gradient_t & FunctionGradient = std::function<void(const Eigen::VectorXd & x, Eigen::VectorXd & grad)>(),
-                       const hessian_t & FunctionHessian = EMPTY_HESSIAN);
+            void solve( Vector & x0,
+                        function_t const & FunctionValue,
+                        gradient_t const & FunctionGradient = std::function<void(const Eigen::VectorXd & x, Eigen::VectorXd & grad)>(),
+                        hessian_t  const & FunctionHessian = EMPTY_HESSIAN );
 
-            virtual void internalSolve(Vector & x0,
-                                       const function_t & FunctionValue,
-                                       const gradient_t & FunctionGradient,
-                                       const hessian_t & FunctionHessian = EMPTY_HESSIAN) = 0;
+            virtual void internalSolve( Vector & x0,
+                                        function_t const & FunctionValue,
+                                        gradient_t const & FunctionGradient,
+                                        hessian_t  const & FunctionHessian = EMPTY_HESSIAN) = 0;
 
-            static double linesearch(Vector const & x,
-                                     Vector const & direction,
-                                     function_t const & FunctionValue,
-                                     gradient_t const & FunctionGradient);
+            static double linesearch( Vector const & x,
+                                      Vector const & direction,
+                                      function_t const & FunctionValue,
+                                      gradient_t const & FunctionGradient );
 
             static double linesearch( Vector const & x,
                                       Vector const & direction,
                                       Eigen::MatrixXd const & hessian,
                                       function_t const & FunctionValue,
-                                      gradient_t const & FunctionGradient);
+                                      gradient_t const & FunctionGradient );
 
     };
 

@@ -3,6 +3,7 @@ build/*
 
 # User specific files
 *.user
+*.idea
 
 # Compiled Object files
 *.slo
