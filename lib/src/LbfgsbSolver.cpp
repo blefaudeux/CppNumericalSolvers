@@ -41,7 +41,6 @@ namespace pwie
         return idx;
     }
 
-
     LbfgsbSolver::LbfgsbSolver() : ISolver()
     {
         // TODO Auto-generated constructor stub
@@ -174,7 +173,7 @@ namespace pwie
 
         Debug(SortedIndices[0] << " " << SortedIndices[1]);
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int ii = i; ii < x_cauchy.rows(); ii++)
         {
             x_cauchy(SortedIndices[ii]) = x(SortedIndices[ii])
@@ -184,8 +183,8 @@ namespace pwie
 
         c += dt_min * p;
         Debug(c.transpose());
-
     }
+
     double LbfgsbSolver::FindAlpha(Vector &x_cp, Vector &du, std::vector<int> &FreeVariables)
     {
         /* this returns
@@ -197,17 +196,14 @@ namespace pwie
         {
             if (du(i) > 0)
             {
-                alphastar = min(alphastar,
-                                (ub(FreeVariables[i]) - x_cp(FreeVariables[i]))
-                                / du(i));
+                alphastar = min(alphastar, (ub(FreeVariables[i]) - x_cp(FreeVariables[i])) / du(i));
             }
             else
             {
-                alphastar = min(alphastar,
-                                (lb(FreeVariables[i]) - x_cp(FreeVariables[i]))
-                                / du(i));
+                alphastar = min(alphastar, (lb(FreeVariables[i]) - x_cp(FreeVariables[i])) / du(i));
             }
         }
+
         return alphastar;
     }
 
@@ -232,12 +228,15 @@ namespace pwie
                 FreeVariablesIndex.push_back(i);
             }
         }
-        const int FreeVarCount = FreeVariablesIndex.size();
+
+        int const FreeVarCount = FreeVariablesIndex.size();
 
         Matrix WZ = Matrix::Zero(W.cols(), FreeVarCount);
 
         for (int i = 0; i < FreeVarCount; i++)
+        {
             WZ.col(i) = W.row(FreeVariablesIndex[i]);
+        }
 
         Debug(WZ);
 
@@ -255,18 +254,22 @@ namespace pwie
 
         // STEP 2: "v = w^T*Z*r" and STEP 3: "v = M*v"
         Vector v = M * (WZ * r);
+
         // STEP 4: N = 1/theta*W^T*Z*(W^T*Z)^T
         Matrix N = theta_inverse * WZ * WZ.transpose();
         // N = I - MN
         N = Matrix::Identity(N.rows(), N.rows()) - M * N;
+
         // STEP: 5
         // v = N^{-1}*v
         v = N.lu().solve(v);
+
         // STEP: 6
         // HERE IS A MISTAKE IN THE ORIGINAL PAPER!
         Vector du = -theta_inverse * r
                     - theta_inverse * theta_inverse * WZ.transpose() * v;
         Debug(du.transpose());
+
         // STEP: 7
         double alpha_star = FindAlpha(x_cauchy, du, FreeVariablesIndex);
 
@@ -276,15 +279,14 @@ namespace pwie
         SubspaceMin = x_cauchy;
         for (int i = 0; i < FreeVarCount; i++)
         {
-            SubspaceMin(FreeVariablesIndex[i]) = SubspaceMin(
-                                                     FreeVariablesIndex[i]) + dStar(i);
+            SubspaceMin(FreeVariablesIndex[i]) = SubspaceMin( FreeVariablesIndex[i]) + dStar(i);
         }
     }
 
-    void LbfgsbSolver::internalSolve(Vector &x0,
-                                     function_t const &FunctionValue,
-                                     gradient_t const &FunctionGradient,
-                                     hessian_t  const &FunctionHessian)
+    void LbfgsbSolver::internalSolve( Vector &x0,
+                                      function_t const &FunctionValue,
+                                      gradient_t const &FunctionGradient,
+                                      hessian_t  const &FunctionHessian )
     {
         UNUSED(FunctionHessian);
         DIM = x0.rows();
@@ -304,8 +306,6 @@ namespace pwie
 
         W = Matrix::Zero(DIM, 0);
         M = Matrix::Zero(0, 0);
-        Matrix H = Matrix::Identity(DIM, DIM);
-
 
         FunctionObjectiveOracle_ = FunctionValue;
         FunctionGradientOracle_ = FunctionGradient;
@@ -317,12 +317,8 @@ namespace pwie
         Debug(lb.transpose());
         Debug(ub.transpose());
 
-        Assert((x0.array() >= lb.array()).all(),
-               "seed is not feasible (violates lower bound)");
-        Assert((x0.array() <= ub.array()).all(),
-               "seed is not feasible (violates upper bound)");
-
-
+        Assert((x0.array() >= lb.array()).all(), "seed is not feasible (violates lower bound)");
+        Assert((x0.array() <= ub.array()).all(), "seed is not feasible (violates upper bound)");
 
         xHistory.push_back(x0);
 
@@ -341,12 +337,10 @@ namespace pwie
 
 
 
-        auto noConvergence =
-                [&](Vector & x, Vector & g)->bool
+        auto noConvergence = [&](Vector & x, Vector & g)->bool
         {
             return (((x - g).cwiseMax(lb).cwiseMin(ub) - x).lpNorm<Eigen::Infinity>() >= 1e-4);
         };
-
 
         while (noConvergence(x, g) && (k < settings.maxIter))
         {
@@ -363,10 +357,8 @@ namespace pwie
             // STEP 3: compute a search direction d_k by the primal method
             Vector SubspaceMin;
             SubspaceMinimization(CauchyPoint, x, c, g, SubspaceMin);
-
-
-            double Length = 0;
             double initial_alpha = (k==0) ? 1.0 : 1.0/g.norm();
+
             // STEP 4: perform linesearch and STEP 5: compute gradient
             WolfeRule::linesearch(x, SubspaceMin - x,FunctionValue, FunctionGradient, initial_alpha);
 
@@ -399,11 +391,7 @@ namespace pwie
                 sHistory.rightCols(1) = newS;
 
                 // STEP 7:
-                theta = (double)(newY.transpose() * newY)
-                        / (newY.transpose() * newS);
-
-
-
+                theta = (double)(newY.transpose() * newY) / (newY.transpose() * newS);
 
                 W = Matrix::Zero(yHistory.rows(),
                                  yHistory.cols() + sHistory.cols());
@@ -429,15 +417,11 @@ namespace pwie
                 // successive function values too similar
                 break;
             }
-            k++;
+            ++k;
 
         }
 
-
         x0 = x;
-
-
-
     }
 }
 
