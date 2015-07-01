@@ -44,21 +44,20 @@ namespace pwie
     LbfgsbSolver::LbfgsbSolver() : ISolver()
     {
         // TODO Auto-generated constructor stub
-        hasbounds = false;
-        hasbound_lower = false;
-        hasbound_upper = false;
-
+        m_hasbounds = false;
+        m_hasboundLower = false;
+        m_hasboundUpper = false;
     }
 
     void LbfgsbSolver::setLowerBound(const Vector &lower)
     {
         lb = lower;
-        hasbound_lower = true;
+        m_hasboundLower = true;
     }
     void LbfgsbSolver::setUpperBound(const Vector &upper)
     {
         ub = upper;
-        hasbound_upper = true;
+        m_hasboundUpper = true;
     }
 
     void LbfgsbSolver::GetGeneralizedCauchyPoint(Vector &x, Vector &g, Vector &x_cauchy,
@@ -107,13 +106,13 @@ namespace pwie
         x_cauchy = x;
         // Initialize
         // p :=     W^T*p
-        Vector p = (W.transpose() * d);                     // (2mn operations)
+        Vector p = (m_W.transpose() * d);                     // (2mn operations)
         // c :=     0
-        c = Eigen::MatrixXd::Zero(M.rows(), 1);
+        c = Eigen::MatrixXd::Zero(m_M.rows(), 1);
         // f' :=    g^T*d = -d^Td
         double f_prime = -d.dot(d);                         // (n operations)
         // f'' :=   \theta*d^T*d-d^T*W*M*W^T*d = -\theta*f' - p^T*M*p
-        double f_doubleprime = (double)(-1.0 * theta) * f_prime - p.dot(M * p); // (O(m^2) operations)
+        double f_doubleprime = (double)(-1.0 * m_theta) * f_prime - p.dot(m_M * p); // (O(m^2) operations)
         // \delta t_min :=  -f'/f''
         double dt_min = -f_prime / f_doubleprime;
         // t_old :=     0
@@ -146,14 +145,14 @@ namespace pwie
             // c   :=  c +\delta t*p
             c += dt * p;
             // cache
-            Vector wbt = W.row(b);
+            Vector wbt = m_W.row(b);
 
             f_prime += dt * f_doubleprime + (double) g(b) * g(b)
-                       + (double) theta * g(b) * zb
-                       - (double) g(b) * wbt.transpose() * (M * c);
-            f_doubleprime += (double) - 1.0 * theta * g(b) * g(b)
-                             - (double) 2.0 * (g(b) * (wbt.dot(M * p)))
-                             - (double) g(b) * g(b) * wbt.transpose() * (M * wbt);
+                       + (double) m_theta * g(b) * zb
+                       - (double) g(b) * wbt.transpose() * (m_M * c);
+            f_doubleprime += (double) - 1.0 * m_theta * g(b) * g(b)
+                             - (double) 2.0 * (g(b) * (wbt.dot(m_M * p)))
+                             - (double) g(b) * g(b) * wbt.transpose() * (m_M * wbt);
             p += g(b) * wbt.transpose();
             d(b) = 0;
             dt_min = -f_prime / f_doubleprime;
@@ -213,7 +212,7 @@ namespace pwie
     {
 
         // cached value: ThetaInverse=1/theta;
-        double theta_inverse = 1 / theta;
+        double theta_inverse = 1 / m_theta;
 
         // size of "t"
         std::vector<int> FreeVariablesIndex;
@@ -231,11 +230,11 @@ namespace pwie
 
         int const FreeVarCount = FreeVariablesIndex.size();
 
-        Matrix WZ = Matrix::Zero(W.cols(), FreeVarCount);
+        Matrix WZ = Matrix::Zero(m_W.cols(), FreeVarCount);
 
         for (int i = 0; i < FreeVarCount; i++)
         {
-            WZ.col(i) = W.row(FreeVariablesIndex[i]);
+            WZ.col(i) = m_W.row(FreeVariablesIndex[i]);
         }
 
         Debug(WZ);
@@ -244,7 +243,7 @@ namespace pwie
         Debug(g);
         Debug(x_cauchy);
         Debug(x);
-        Vector rr = (g + theta * (x_cauchy - x) - W * (M * c));
+        Vector rr = (g + m_theta * (x_cauchy - x) - m_W * (m_M * c));
         // r=r(FreeVariables);
         Vector r = Matrix::Zero(FreeVarCount, 1);
         for (int i = 0; i < FreeVarCount; i++)
@@ -253,12 +252,12 @@ namespace pwie
         Debug(r.transpose());
 
         // STEP 2: "v = w^T*Z*r" and STEP 3: "v = M*v"
-        Vector v = M * (WZ * r);
+        Vector v = m_M * (WZ * r);
 
         // STEP 4: N = 1/theta*W^T*Z*(W^T*Z)^T
         Matrix N = theta_inverse * WZ * WZ.transpose();
         // N = I - MN
-        N = Matrix::Identity(N.rows(), N.rows()) - M * N;
+        N = Matrix::Identity(N.rows(), N.rows()) - m_M * N;
 
         // STEP: 5
         // v = N^{-1}*v
@@ -289,26 +288,26 @@ namespace pwie
                                       hessian_t  const &FunctionHessian )
     {
         UNUSED(FunctionHessian);
-        DIM = x0.rows();
+        m_dim = x0.rows();
 
-        if (!hasbound_lower)
+        if (!m_hasboundLower)
         {
-            lb = (-1 * Vector::Ones(DIM)) * INF;
-            hasbound_lower = true;
+            lb = (-1 * Vector::Ones(m_dim)) * INF;
+            m_hasboundLower = true;
         }
 
-        if (!hasbound_upper)
+        if (!m_hasboundUpper)
         {
-            ub = Vector::Ones(DIM) * INF;
-            hasbound_upper = true;
+            ub = Vector::Ones(m_dim) * INF;
+            m_hasboundUpper = true;
         }
-        theta = 1.0;
+        m_theta = 1.0;
 
-        W = Matrix::Zero(DIM, 0);
-        M = Matrix::Zero(0, 0);
+        m_W = Matrix::Zero(m_dim, 0);
+        m_M = Matrix::Zero(0, 0);
 
-        FunctionObjectiveOracle_ = FunctionValue;
-        FunctionGradientOracle_ = FunctionGradient;
+        m_FunctionObjectiveOracle = FunctionValue;
+        m_FunctionGradientOracle = FunctionGradient;
 
         Assert(x0.rows() == lb.rows(), "lower bound size incorrect");
         Assert(x0.rows() == ub.rows(), "upper bound size incorrect");
@@ -322,15 +321,15 @@ namespace pwie
 
         xHistory.push_back(x0);
 
-        Matrix yHistory = Matrix::Zero(DIM, 0);
-        Matrix sHistory = Matrix::Zero(DIM, 0);
+        Matrix yHistory = Matrix::Zero(m_dim, 0);
+        Matrix sHistory = Matrix::Zero(m_dim, 0);
 
         Vector x = x0, g;
         size_t k = 0;
 
-        double f = FunctionObjectiveOracle_(x);
+        double f = m_FunctionObjectiveOracle(x);
 
-        FunctionGradientOracle_(x, g);
+        m_FunctionGradientOracle(x, g);
 
         Debug(f);
         Debug(g.transpose());
@@ -345,14 +344,14 @@ namespace pwie
         while (noConvergence(x, g) && (k < settings.maxIter))
         {
 
-            //std::cout << FunctionObjectiveOracle_(x) << std::endl;
             Debug("iteration " << k)
-                    double f_old = f;
+
+            double f_old = f;
             Vector x_old = x;
             Vector g_old = g;
 
             // STEP 2: compute the cauchy point by algorithm CP
-            Vector CauchyPoint = Matrix::Zero(DIM, 1), c = Matrix::Zero(DIM, 1);
+            Vector CauchyPoint = Matrix::Zero(m_dim, 1), c = Matrix::Zero(m_dim, 1);
             GetGeneralizedCauchyPoint(x, g, CauchyPoint, c);
             // STEP 3: compute a search direction d_k by the primal method
             Vector SubspaceMin;
@@ -376,42 +375,40 @@ namespace pwie
             {
                 if (k < settings.m)
                 {
-                    yHistory.conservativeResize(DIM, k + 1);
-                    sHistory.conservativeResize(DIM, k + 1);
+                    yHistory.conservativeResize(m_dim, k + 1);
+                    sHistory.conservativeResize(m_dim, k + 1);
                 }
                 else
                 {
-
-                    yHistory.leftCols(settings.m - 1) = yHistory.rightCols(
-                                                            settings.m - 1).eval();
-                    sHistory.leftCols(settings.m - 1) = sHistory.rightCols(
-                                                            settings.m - 1).eval();
+                    yHistory.leftCols(settings.m - 1) = yHistory.rightCols( settings.m - 1).eval();
+                    sHistory.leftCols(settings.m - 1) = sHistory.rightCols( settings.m - 1).eval();
                 }
+
                 yHistory.rightCols(1) = newY;
                 sHistory.rightCols(1) = newS;
 
                 // STEP 7:
-                theta = (double)(newY.transpose() * newY) / (newY.transpose() * newS);
+                m_theta = (double)(newY.transpose() * newY) / (newY.transpose() * newS);
 
-                W = Matrix::Zero(yHistory.rows(),
+                m_W = Matrix::Zero(yHistory.rows(),
                                  yHistory.cols() + sHistory.cols());
 
-                W << yHistory, (theta * sHistory);
+                m_W << yHistory, (m_theta * sHistory);
 
                 Matrix A = sHistory.transpose() * yHistory;
                 Matrix L = A.triangularView<Eigen::StrictlyLower>();
                 Matrix MM(A.rows() + L.rows(), A.rows() + L.cols());
                 Matrix D = -1 * A.diagonal().asDiagonal();
                 MM << D, L.transpose(), L, ((sHistory.transpose() * sHistory)
-                                            * theta);
+                                            * m_theta);
 
-                M = MM.inverse();
-
+                m_M = MM.inverse();
             }
 
             Vector ttt = Matrix::Zero(1, 1);
             ttt(0) = f_old - f;
             Debug("--> " << ttt.norm());
+
             if (ttt.norm() < 1e-8)
             {
                 // successive function values too similar

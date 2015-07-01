@@ -26,49 +26,48 @@
 namespace pwie
 {
 
-NewtonDescentSolver::NewtonDescentSolver() : ISolver()
-{
-
-}
-
-
-void NewtonDescentSolver::internalSolve(Vector & x,
-                                        function_t const & FunctionValue,
-                                        gradient_t const & FunctionGradient,
-                                        hessian_t  const & FunctionHessian)
-{
-
-    if(!FunctionHessian)
+    NewtonDescentSolver::NewtonDescentSolver() : ISolver()
     {
-        std::cout << "Error: hessian matrix is missing!" << std::endl;
-        return;
+
     }
 
-    const size_t DIM = x.rows();
-
-    Vector grad = Vector::Zero(DIM);
-    Matrix hessian = Matrix::Zero(DIM, DIM);
-
-    FunctionGradient(x, grad);
-    FunctionHessian(x, hessian);
-
-    size_t iter = 0;
-    do
+    void NewtonDescentSolver::internalSolve( Vector & x,
+                                             function_t const & FunctionValue,
+                                             gradient_t const & FunctionGradient,
+                                             hessian_t  const & FunctionHessian )
     {
-        hessian += (1e-5) * Matrix::Identity(DIM, DIM);
-        Vector delta_x = hessian.lu().solve(-grad);
-        const double rate = linesearch(x, delta_x, FunctionValue, FunctionGradient) ;
-        x = x + rate * delta_x;
+
+        if(!FunctionHessian)
+        {
+            std::cout << "Error: hessian matrix is missing!" << std::endl;
+            return;
+        }
+
+        const size_t DIM = x.rows();
+
+        Vector grad = Vector::Zero(DIM);
+        Matrix hessian = Matrix::Zero(DIM, DIM);
 
         FunctionGradient(x, grad);
         FunctionHessian(x, hessian);
 
-        iter++;
+        size_t iter = 0;
+        do
+        {
+            hessian += (1e-5) * Matrix::Identity(DIM, DIM);
+            Vector delta_x = hessian.lu().solve(-grad);
+            const double rate = linesearch(x, delta_x, FunctionValue, FunctionGradient) ;
+            x = x + rate * delta_x;
+
+            FunctionGradient(x, grad);
+            FunctionHessian(x, hessian);
+
+            iter++;
+        }
+        while((grad.lpNorm<Eigen::Infinity>() > settings.gradTol) && (iter < settings.maxIter));
+
+
     }
-    while((grad.lpNorm<Eigen::Infinity>() > settings.gradTol) && (iter < settings.maxIter));
-
-
-}
 }
 
 /* namespace pwie */

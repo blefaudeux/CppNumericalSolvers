@@ -31,10 +31,10 @@ class LbfgsSolver : public ISolver
 public:
     LbfgsSolver();
 
-    void internalSolve(Vector & x0,
-                       function_t const & FunctionValue,
-                       gradient_t const & FunctionGradient,
-                       hessian_t  const & FunctionHessian = EMPTY_HESSIAN);
+    void internalSolve( Vector & x0,
+                        function_t const & FunctionValue,
+                        gradient_t const & FunctionGradient,
+                        hessian_t  const & FunctionHessian = EMPTY_HESSIAN );
 };
 
 } /* namespace pwie */

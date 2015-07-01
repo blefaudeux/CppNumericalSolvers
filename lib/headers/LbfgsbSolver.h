@@ -34,19 +34,16 @@ namespace pwie
  */
     class LbfgsbSolver : public ISolver
     {
-            Vector lb;
-            Vector ub;
-            std::list<Vector> xHistory;
+        public:
+            LbfgsbSolver();
+            void internalSolve(Vector & x0,
+                               const function_t & FunctionValue,
+                               const gradient_t & FunctionGradient,
+                               const hessian_t & FunctionHessian = EMPTY_HESSIAN);
 
-            function_t FunctionObjectiveOracle_;
-            gradient_t FunctionGradientOracle_;
+            void setLowerBound(const Vector & lower);
+            void setUpperBound(const Vector & upper);
 
-            Matrix W, M;
-            double theta;
-            int DIM;
-            bool hasbounds = false;
-            bool hasbound_lower = false;
-            bool hasbound_upper = false;
         private:
             /// <summary>
             /// find cauchy point in x
@@ -66,15 +63,24 @@ namespace pwie
             /// </summary>
             /// <parameter name="x">start in x</parameter>
             void SubspaceMinimization(Vector & x_cauchy, Vector & x, Vector & c, Vector & g, Vector & SubspaceMin);
-        public:
-            LbfgsbSolver();
-            void internalSolve(Vector & x0,
-                               const function_t & FunctionValue,
-                               const gradient_t & FunctionGradient,
-                               const hessian_t & FunctionHessian = EMPTY_HESSIAN);
 
-            void setLowerBound(const Vector & lower);
-            void setUpperBound(const Vector & upper);
+        private:
+
+            Vector lb;
+            Vector ub;
+            std::list<Vector> xHistory;
+
+            function_t m_FunctionObjectiveOracle;
+            gradient_t m_FunctionGradientOracle;
+
+            Matrix m_W, m_M;
+
+            double  m_theta;
+            int     m_dim;
+            bool    m_hasbounds = false;
+            bool    m_hasboundLower = false;
+            bool    m_hasboundUpper = false;
+
     };
 
 } /* namespace pwie */

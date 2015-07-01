@@ -43,28 +43,25 @@ namespace pwie
         const size_t m = 10;
         const size_t DIM = x.rows();
 
-
         Matrix sVector = Matrix::Zero(DIM, m);
         Matrix yVector = Matrix::Zero(DIM, m);
 
         Vector alpha = Vector::Zero(m);
         Vector grad(DIM), q(DIM), grad_old(DIM), s(DIM), y(DIM);
+
         FunctionGradient(x, grad);
-        Vector x_old = x;
-        Vector x_old2 = x;
+
+        Vector x_old = x, x_old2 = x;
 
         double x_start = FunctionValue(x), x_end;
 
         size_t iter = 0, j=0;
 
         double H0k = 1;
-
-
-        double oscillate_diff=0,oscillate_diff2=0;
+        double oscillate_diff=0, oscillate_diff2=0;
 
         do
         {
-
             const double relativeEpsilon = 0.0001 * max(1.0, x.norm());
 
             if (grad.norm() < relativeEpsilon)
@@ -83,8 +80,10 @@ namespace pwie
                 // q <- q - alpha_i*y_i
                 q = q - alpha(i) * yVector.col(i);
             }
+
             // r <- H_k^0*q
             q = H0k * q;
+
             //for i k − m, k − m + 1, . . . , k − 1
             for (int i = 0; i < k; i++)
             {
@@ -107,9 +106,9 @@ namespace pwie
 
             // find steplength
             const double rate = WolfeRule::linesearch(x, -q,  FunctionValue, FunctionGradient, alpha_init) ;
+
             // update guess
             x = x - rate * q;
-
             grad_old = grad;
             FunctionGradient(x, grad);
 
@@ -124,15 +123,14 @@ namespace pwie
             }
             else
             {
-
                 sVector.leftCols(m - 1) = sVector.rightCols(m - 1).eval();
                 sVector.rightCols(1) = s;
                 yVector.leftCols(m - 1) = yVector.rightCols(m - 1).eval();
                 yVector.rightCols(1) = y;
             }
+
             // update the scaling factor
             H0k = y.dot(s) / static_cast<double>(y.dot(y));
-
 
             // now the ugly part : detect convergence
             // observation: L-BFGS seems to oscillate
@@ -149,12 +147,8 @@ namespace pwie
 
             if(fabs(oscillate_diff-oscillate_diff2)<1.0e-7)
                 break;
-
-
         }
         while ((grad.norm() > 1.0e-5) && (j < settings.maxIter));
-
-
 
     }
 }
