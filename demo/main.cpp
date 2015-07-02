@@ -6,6 +6,8 @@
 #include <functional>
 #include <string>
 #include "LbfgsSolver.h"
+#include "GradientDescentSolver.h"
+#include "LbfgsbSolver.h"
 
 /* author : Patrick Wieschollek - see https://github.com/PatWie/CppNumericalSolvers */
 
@@ -34,27 +36,26 @@ auto printExample = [](std::string name)
               << "------------------------------------------" << std::endl;
 };
 
+// See https://en.wikipedia.org/wiki/Rosenbrock_function
+double rosenbrock(Vector const & x)
+{
+    const double t1 = (1 - x[0]);
+    const double t2 = (x[1] - x[0] * x[0]);
+    return   t1 * t1 + 100 * t2 * t2;
+}
+
 int example000(void)
 {
     printExample("checkgradient");
 
-    // check your gradient!
-    // create function
-    auto rosenbrock = [](Vector const & x) -> double
-    {
-        const double t1 = (1 - x[0]);
-        const double t2 = (x[1] - x[0] * x[0]);
-        return   t1 * t1 + 100 * t2 * t2;
-    };
-
-    // create derivative of function
+    // create derivative of rosenbrock function
     auto Drosenbrock = [](Vector const & x, Vector & grad) -> void
     {
         grad[0]  = -2 * (1 - x[0]) + 200 * (x[1] - x[0] * x[0]) * (-2 * x[0]);
         grad[1]  = 200 * (x[1] - x[0] * x[0]);
     };
 
-    // create derivative of function
+    // create false derivative of rosenbrock function
     auto WrongDrosenbrock = [](Vector const & x, Vector & grad) -> void
     {
         grad[0]  = -2 * (1 - x[0]) + 200 * (x[1] - x[0] * x[0]) * (2 * x[0]); // <<-- last term wrong sign
@@ -95,73 +96,57 @@ int example000(void)
 
 int example001(void)
 {
+    // Minimize rosenbrock function only using the objective function
 
     printExample("optimization without gradient:");
-
-    // minimize rosenbrock function only using the objective function
-    auto objectiveFunction = [](Vector const & x) -> double
-    {
-        // rosenbrock
-        const double t1 = (1 - x[0]);
-        const double t2 = (x[1] - x[0] * x[0]);
-        return   t1 * t1 + 100 * t2 * t2;
-    };
-
 
     // initial guess
     Vector x0(2);
     x0 << 3, 2;
+
     // use solver (GradientDescentSolver,BfgsSolver,LbfgsSolver,LbfgsbSolver)
     LbfgsSolver g;
-    g.solve(x0, objectiveFunction);
+    g.solve(x0, rosenbrock);
+    std::cout << "-- LBFGS" << std::endl;
+    std::cout << "result:    " << x0.transpose();
+    std::cout << std::endl;
+    std::cout << "should be: " << "1 1" << std::endl << std::endl;
 
+    GradientDescentSolver gd;
+    gd.solve(x0, rosenbrock);
+    std::cout << "-- Gradient descent" << std::endl;
     std::cout << "result:    " << x0.transpose();
     std::cout << std::endl;
     std::cout << "should be: " << "1 1" << std::endl;
 
-
     return 0;
 }
 
-
 int example002(void)
 {
+    // Minimize rosenbrock function using predefined objective function and vector of partial derivatives
+    printExample("optimization with gradient:");
 
-    printExample("optimization with  gradient:");
-
-    // minimize rosenbrock function using predefined objective function and vector of partial derivatives
-    auto objectiveFunction = [](Vector const & x) -> double
-    {
-        // rosenbrock
-        const double t1 = (1 - x[0]);
-        const double t2 = (x[1] - x[0] * x[0]);
-        return   t1 * t1 + 100 * t2 * t2;
-    };
-
-    // create derivative of function
+    // Create rosenbrock derivative
     auto partialDerivatives = [](Vector const x, Vector & grad) -> void
     {
         grad[0]  = -2 * (1 - x[0]) + 200 * (x[1] - x[0] * x[0]) * (-2 * x[0]);
         grad[1]  = 200 * (x[1] - x[0] * x[0]);
     };
 
-
     // initial guess
     Vector x0(2);
     x0 << 15, 8;
     // use solver (GradientDescentSolver,BfgsSolver,LbfgsSolver,LbfgsbSolver)
     LbfgsSolver g;
-    g.solve(x0, objectiveFunction, partialDerivatives);
+    g.solve(x0, rosenbrock, partialDerivatives);
 
     std::cout << "result:    " << x0.transpose();
     std::cout << std::endl;
     std::cout << "should be: " << "1 1" << std::endl;
 
-
-
     return 0;
 }
-
 
 int example003(void)
 {
@@ -185,7 +170,6 @@ int example003(void)
         grad = Vector(x.rows());
         grad = 2 * A.transpose() * (A * x) - 2 * A.transpose() * y;
     };
-
 
     // initial guess
     Vector x0(2);
