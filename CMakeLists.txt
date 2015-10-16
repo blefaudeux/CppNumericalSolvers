@@ -1,11 +1,10 @@
-<<<<<<< HEAD
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
 set(PROJECT_NAME_STR CppSolver)
 
 project( ${PROJECT_NAME_STR} )
 
-include(CppNumericalSolvers.config)
+# include(CppNumericalSolvers.config)
 
 find_package(Threads REQUIRED)
 
