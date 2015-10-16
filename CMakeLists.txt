@@ -1,8 +1,11 @@
+<<<<<<< HEAD
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
 set(PROJECT_NAME_STR CppSolver)
 
 project( ${PROJECT_NAME_STR} )
+
+include(CppNumericalSolvers.config)
 
 find_package(Threads REQUIRED)
 
@@ -25,43 +28,21 @@ if( CMAKE_BUILD_TYPE MATCHES "[Rr][Ee][Ll][Ee][Aa][Ss][Ee]" )
     message( "INFO: RELEASE BUILD" )
 endif()
 
-# Deal with the c++11 stuff (pre 4.9 gcc)
-if(CMAKE_COMPILER_IS_GNUCXX)
-   execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-   if (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7)
-        message(STATUS "C++11 activated.")
-        add_definitions("-std=gnu++11")
-   elseif(GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
-        message(WARNING "C++0x activated. If you get any errors update to a compiler which fully supports C++11")
-        add_definitions("-std=gnu++0x")
-   else ()
-        message(FATAL_ERROR "C++11 needed. Therefore a gcc compiler with a version higher than 4.3 is needed.")
-   endif()
-else(CMAKE_COMPILER_IS_GNUCXX)
-   add_definitions("-std=c++0x")
-endif(CMAKE_COMPILER_IS_GNUCXX)
+# check existence of c++11 compiler
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+elseif(COMPILER_SUPPORTS_CXX0X)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+else()
+    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+endif()
 
 # Find Eigen3 on this machine
 set( EIGEN3_INCLUDE_DIR "/usr/include/eigen3/")
 include_directories( "${EIGEN3_INCLUDE_DIR}" )
-
-#find_package(eigen3)
-#if(NOT eigen3_FOUND)
-#  set(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
-#
-#  if(NOT EIGEN3_INCLUDE_DIR )
-#    # Try to manually define Eigen location
-#    set(ENV{EIGEN3_INCLUDE_DIR} "/usr/include/eigen3/")
-#    set(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
-#
-#    # Raise error if that's not enough
-#    if(NOT EIGEN3_INCLUDE_DIR )
-#      message(FATAL_ERROR "Please point the environment variable EIGEN3_INCLUDE_DIR to the include directory of your Eigen3 installation.")
-#    endif()
-#
-#    include_directories( "${EIGEN3_INCLUDE_DIR}" )
-#  endif()
-#endif()
 
 # Recurse into the subdirectories. This does not actually
 add_subdirectory (lib)
