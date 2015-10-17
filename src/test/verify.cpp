@@ -133,7 +133,6 @@ TEST(CentralDifference, Gradient){
         EXPECT_NEAR(grad(1), -1, PRECISION);
     }
 }
-
 TEST(CentralDifference, Hessian){
     // simple function y <- 3*a^2-a*b
     class Func : public Problem<double> {
