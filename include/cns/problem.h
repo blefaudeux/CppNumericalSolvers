@@ -84,8 +84,8 @@ class Problem {
     const int D = x.rows();
     bool correct = true;
 
-    Matrix<double> actual_hessian = Matrix<double>::Zero(D, D);
-    Matrix<double> expected_hessian = Matrix<double>::Zero(D, D);
+    Matrix<T> actual_hessian = Matrix<T>::Zero(D, D);
+    Matrix<T> expected_hessian = Matrix<T>::Zero(D, D);
     hessian(x, actual_hessian);
     finiteHessian(x, expected_hessian, accuracy);
     for (int d = 0; d < D; ++d) {
