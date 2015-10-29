@@ -4,7 +4,7 @@
 #include <chrono>
 #include <stdexcept>
 
-namespace cns {
+namespace cppoptlib {
 
 template<typename C = std::chrono::high_resolution_clock>
 class timer

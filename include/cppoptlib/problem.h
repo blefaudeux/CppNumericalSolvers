@@ -2,10 +2,15 @@
 #define PROBLEM_H
 
 #include <Eigen/Dense>
+#ifndef MATLAB
 #include "../gtest/gtest.h"
+#else
+#define EXPECT_NEAR(x, y, z)
+#endif /* MATLAB */
+
 #include "meta.h"
 
-namespace cns {
+namespace cppoptlib {
 template<typename T>
 class Problem {
  protected:

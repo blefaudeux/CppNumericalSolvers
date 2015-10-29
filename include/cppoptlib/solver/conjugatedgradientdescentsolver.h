@@ -6,7 +6,7 @@
 #include "isolver.h"
 #include "../linesearch/armijo.h"
 
-namespace cns {
+namespace cppoptlib {
 
 template<typename T>
 class ConjugatedGradientDescentSolver : public ISolver<T, 1> {
@@ -55,6 +55,6 @@ class ConjugatedGradientDescentSolver : public ISolver<T, 1> {
 
 };
 
-} /* namespace cns */
+} /* namespace cppoptlib */
 
 #endif /* CONJUGATEDGRADIENTDESCENTSOLVER_H_ */
