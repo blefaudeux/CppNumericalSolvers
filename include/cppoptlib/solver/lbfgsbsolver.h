@@ -1,5 +1,6 @@
 // CppNumericalSolver
 #include <iostream>
+#include <list>
 #include <Eigen/LU>
 #include "isolver.h"
 #include "../linesearch/morethuente.h"
@@ -7,24 +8,29 @@
 #ifndef LBFGSBSOLVER_H_
 #define LBFGSBSOLVER_H_
 
-namespace cns {
+namespace cppoptlib {
 
 template<typename Dtype>
 class LbfgsbSolver : public ISolver<Dtype, 1> {
 
-  Vector<Dtype> lb;
-  Vector<Dtype> ub;
+  // last updates
   std::list<Vector<Dtype>> xHistory;
+  // workspace matrices
   Matrix<Dtype> W, M;
-
+  // ref to problem statement
   Problem<Dtype> *objFunc_;
 
   Dtype theta;
-  int DIM;
-  bool hasbounds = false;
-  bool hasbound_lower = false;
-  bool hasbound_upper = false;
 
+  int DIM;
+
+  /**
+   * @brief sort pairs (k,v) according v ascending
+   * @details [long description]
+   *
+   * @param v [description]
+   * @return [description]
+   */
   std::vector<int> sort_indexes(const std::vector< std::pair<int, Dtype> > &v) {
     std::vector<int> idx(v.size());
     for (size_t i = 0; i != idx.size(); ++i)
@@ -35,16 +41,21 @@ class LbfgsbSolver : public ISolver<Dtype, 1> {
     return idx;
   }
 
+  /**
+   * @brief Algorithm CP: Computation of the generalized Cauchy point
+   * @details PAGE 8
+   *
+   * @param c [description]
+   */
   void GetGeneralizedCauchyPoint(Vector<Dtype> &x, Vector<Dtype> &g, Vector<Dtype> &x_cauchy,
   Vector<Dtype> &c) {
     const int DIM = x.rows();
-    // PAGE 8
-    // Algorithm CP: Computation of the generalized Cauchy point
     // Given x,l,u,g, and B = \theta I-WMW
 
     // {all t_i} = { (idx,value), ... }
     // TODO: use "std::set" ?
     std::vector<std::pair<int, Dtype> > SetOfT;
+
     // the feasible set is implicitly given by "SetOfT - {t_i==0}"
     Vector<Dtype> d = Vector<Dtype>::Zero(DIM, 1);
 
@@ -55,20 +66,17 @@ class LbfgsbSolver : public ISolver<Dtype, 1> {
       } else {
         Dtype tmp = 0;
         if (g(j) < 0) {
-          tmp = (x(j) - ub(j)) / g(j);
+          tmp = (x(j) - objFunc_->upperBound(j)) / g(j);
         } else {
-          tmp = (x(j) - lb(j)) / g(j);
+          tmp = (x(j) - objFunc_->lowerBound(j)) / g(j);
         }
         d(j) = -g(j);
         SetOfT.push_back(std::make_pair(j, tmp));
       }
 
     }
-    // Debug(d.transpose());
-
-    // paper: using heapsort
-    // sortedindices [1,0,2] means the minimal element is on the 1th entry
-    std::vector<int> SortedIndices = sort_indexes(SetOfT);
+    // sortedindices [1,0,2] means the minimal element is on the 1-st entry
+    std::vector<int> sortedIndices = sort_indexes(SetOfT);
 
     x_cauchy = x;
     // Initialize
@@ -88,10 +96,10 @@ class LbfgsbSolver : public ISolver<Dtype, 1> {
     int i = 0;
     for (int j = 0; j < DIM; j++) {
       i = j;
-      if (SetOfT[SortedIndices[j]].second != 0)
+      if (SetOfT[sortedIndices[j]].second != 0)
         break;
     }
-    int b = SortedIndices[i];
+    int b = sortedIndices[i];
     // see below
     // t                    :=  min{t_i : i in F}
     Dtype t = SetOfT[b].second;
@@ -101,9 +109,9 @@ class LbfgsbSolver : public ISolver<Dtype, 1> {
     // examination of subsequent segments
     while ((dt_min >= dt) && (i < DIM)) {
       if (d(b) > 0)
-        x_cauchy(b) = ub(b);
+        x_cauchy(b) = objFunc_->upperBound(b);
       else if (d(b) < 0)
-        x_cauchy(b) = lb(b);
+        x_cauchy(b) = objFunc_->lowerBound(b);
 
       // z_b = x_p^{cp} - x_b
       Dtype zb = x_cauchy(b) - x(b);
@@ -123,7 +131,7 @@ class LbfgsbSolver : public ISolver<Dtype, 1> {
       t_old = t;
       ++i;
       if (i < DIM) {
-        b = SortedIndices[i];
+        b = sortedIndices[i];
         t = SetOfT[b].second;
         dt = t - t_old;
       }
@@ -133,12 +141,12 @@ class LbfgsbSolver : public ISolver<Dtype, 1> {
     dt_min = std::max(dt_min, (Dtype)0.0);
     t_old += dt_min;
 
-    // Debug(SortedIndices[0] << " " << SortedIndices[1]);
+    // Debug(sortedIndices[0] << " " << sortedIndices[1]);
 
     #pragma omp parallel for
     for (int ii = i; ii < x_cauchy.rows(); ii++) {
-      x_cauchy(SortedIndices[ii]) = x(SortedIndices[ii])
-                                    + t_old * d(SortedIndices[ii]);
+      x_cauchy(sortedIndices[ii]) = x(sortedIndices[ii])
+                                    + t_old * d(sortedIndices[ii]);
     }
     // Debug(x_cauchy.transpose());
 
@@ -155,9 +163,9 @@ class LbfgsbSolver : public ISolver<Dtype, 1> {
     const unsigned int n = FreeVariables.size();
     for (unsigned int i = 0; i < n; i++) {
       if (du(i) > 0) {
-        alphastar = std::min(alphastar, (ub(FreeVariables[i]) - x_cp(FreeVariables[i])) / du(i));
+        alphastar = std::min(alphastar, (objFunc_->upperBound(FreeVariables[i]) - x_cp(FreeVariables[i])) / du(i));
       } else {
-        alphastar = std::min(alphastar, (lb(FreeVariables[i]) - x_cp(FreeVariables[i])) / du(i));
+        alphastar = std::min(alphastar, (objFunc_->lowerBound(FreeVariables[i]) - x_cp(FreeVariables[i])) / du(i));
       }
     }
     return alphastar;
@@ -175,8 +183,8 @@ class LbfgsbSolver : public ISolver<Dtype, 1> {
 
     //std::cout << "free vars " << FreeVariables.rows() << std::endl;
     for (int i = 0; i < x_cauchy.rows(); i++) {
-      // Debug(x_cauchy(i) << " " << ub(i) << " " << lb(i));
-      if ((x_cauchy(i) != ub(i)) && (x_cauchy(i) != lb(i))) {
+      // Debug(x_cauchy(i) << " " << objFunc_->upperBound(i) << " " << objFunc_->lowerBound(i));
+      if ((x_cauchy(i) != objFunc_->upperBound(i)) && (x_cauchy(i) != objFunc_->lowerBound(i))) {
         FreeVariablesIndex.push_back(i);
       }
     }
@@ -230,21 +238,22 @@ class LbfgsbSolver : public ISolver<Dtype, 1> {
 
  public:
   void minimize(Problem<Dtype> &objFunc, Vector<Dtype> & x0) {
+    objFunc_ = &objFunc;
 
     const size_t m = 10;
 
     DIM = x0.rows();
 
-    objFunc_ = &objFunc;
+    std::cout << "-->> 1" << std::endl;
 
     if (!objFunc.hasLowerBound) {
-      lb = (-1 * Vector<Dtype>::Ones(DIM)) * std::numeric_limits<Dtype>::lowest();
-      objFunc.hasLowerBound = true;
+      objFunc_->lowerBound = (-1 * Vector<Dtype>::Ones(DIM)) * std::numeric_limits<Dtype>::lowest();
+      objFunc_->hasLowerBound = true;
     }
 
     if (!objFunc.hasUpperBound) {
-      ub = Vector<Dtype>::Ones(DIM) * std::numeric_limits<Dtype>::max();
-      objFunc.hasUpperBound = true;
+      objFunc_->upperBound = Vector<Dtype>::Ones(DIM) * std::numeric_limits<Dtype>::max();
+      objFunc_->hasUpperBound = true;
     }
 
     theta = 1.0;
@@ -253,41 +262,31 @@ class LbfgsbSolver : public ISolver<Dtype, 1> {
     M = Matrix<Dtype>::Zero(0, 0);
     Matrix<Dtype> H = Matrix<Dtype>::Identity(DIM, DIM);
 
-    // Assert(x0.rows() == lb.rows(), "lower bound size incorrect");
-    // Assert(x0.rows() == ub.rows(), "upper bound size incorrect");
-
-    // Debug(x0.transpose());
-    // Debug(lb.transpose());
-    // Debug(ub.transpose());
-
-    // Assert((x0.array() >= lb.array()).all(),
-           // "seed is not feasible (violates lower bound)");
-    // Assert((x0.array() <= ub.array()).all(),
-           // "seed is not feasible (violates upper bound)");
+    std::cout << "-->> 3" << std::endl;
 
     xHistory.push_back(x0);
+    std::cout << "-->> 4" << std::endl;
 
     Matrix<Dtype> yHistory = Matrix<Dtype>::Zero(DIM, 0);
+    std::cout << "-->> 5" << std::endl;
     Matrix<Dtype> sHistory = Matrix<Dtype>::Zero(DIM, 0);
+    std::cout << "-->> 6" << std::endl;
 
-    Vector<Dtype> x = x0, g;
+    Vector<Dtype> x = x0, g = x0;
     size_t k = 0;
 
     Dtype f = objFunc.value(x);
-
+    std::cout << "-->> 7" << std::endl;
     objFunc.gradient(x, g);
-
-    // Debug(f);
-    // Debug(g.transpose());
+    std::cout << "-->> 8" << std::endl;
 
     auto noConvergence =
     [&](Vector<Dtype> & x, Vector<Dtype> & g)->bool {
-      return (((x - g).cwiseMax(lb).cwiseMin(ub) - x).template lpNorm<Eigen::Infinity>() >= 1e-4);
+      return (((x - g).cwiseMax(objFunc_->lowerBound).cwiseMin(objFunc_->upperBound) - x).template lpNorm<Eigen::Infinity>() >= 1e-4);
     };
 
     while (noConvergence(x, g) && (k < this->settings_.maxIter)) {
 
-      //std::cout << objFunc.value(x) << std::endl;
       // Debug("iteration " << k)
       Dtype f_old = f;
       Vector<Dtype> x_old = x;
@@ -304,8 +303,10 @@ class LbfgsbSolver : public ISolver<Dtype, 1> {
       // STEP 4: perform linesearch and STEP 5: compute gradient
       // WolfeRule::linesearch(x, SubspaceMin - x, FunctionValue, FunctionGradient);
       Dtype alpha_init = 1.0;
-      const Dtype rate = MoreThuente<Dtype, decltype(objFunc), 1>::linesearch(x, SubspaceMin - x,  objFunc, alpha_init);
+      const Dtype rate = MoreThuente<Dtype, decltype(objFunc), 1>::linesearch(x, -SubspaceMin + x,  objFunc, alpha_init);
+      std::cout << "rate " << rate << std::endl;
 
+      x = x - rate*(SubspaceMin - x);
       xHistory.push_back(x);
 
       // prepare for next iteration
@@ -351,6 +352,8 @@ class LbfgsbSolver : public ISolver<Dtype, 1> {
       }
 
       Vector<Dtype> ttt = Matrix<Dtype>::Zero(1, 1);
+      std::cout << objFunc(x) << std::endl;
+      return;
       ttt(0) = f_old - f;
       // Debug("--> " << ttt.norm());
       if (ttt.norm() < 1e-8) {
@@ -368,6 +371,6 @@ class LbfgsbSolver : public ISolver<Dtype, 1> {
 };
 
 }
-/* namespace cns */
+/* namespace cppoptlib */
 
 #endif /* LBFGSBSOLVER_H_ */

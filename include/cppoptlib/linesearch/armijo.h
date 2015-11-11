@@ -4,7 +4,7 @@
 
 #include "../meta.h"
 
-namespace cns {
+namespace cppoptlib {
 
 template<typename T, typename P, int Ord>
 class Armijo {

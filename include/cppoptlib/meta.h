@@ -4,7 +4,7 @@
 
 #include <Eigen/Dense>
 
-namespace cns {
+namespace cppoptlib {
 
 template <typename T>
 using Vector = Eigen::Matrix<T, Eigen::Dynamic, 1>;

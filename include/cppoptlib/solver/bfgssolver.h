@@ -2,12 +2,12 @@
 #include <iostream>
 #include <Eigen/LU>
 #include "isolver.h"
-#include "../linesearch/armijo.h"
+#include "../linesearch/morethuente.h"
 
 #ifndef BFGSSOLVER_H_
 #define BFGSSOLVER_H_
 
-namespace cns {
+namespace cppoptlib {
 
 template<typename T>
 class BfgsSolver : public ISolver<T, 1> {
@@ -34,7 +34,7 @@ class BfgsSolver : public ISolver<T, 1> {
                 searchDir = -1 * grad;
             }
 
-            const double rate = Armijo<T, decltype(objFunc), 1>::linesearch(x0, searchDir, objFunc) ;
+            const double rate = MoreThuente<T, decltype(objFunc), 1>::linesearch(x0, searchDir, objFunc) ;
             x0 = x0 + rate * searchDir;
 
             Vector<T> grad_old = grad;
@@ -46,8 +46,10 @@ class BfgsSolver : public ISolver<T, 1> {
             H = H - rho * (s * (y.transpose() * H) + (H * y) * s.transpose()) + rho * rho * (y.dot(H * y) + 1.0 / rho)
                 * (s * s.transpose());
             gradNorm = grad.template lpNorm<Eigen::Infinity>();
-            // std::cout << "iter: " << iter << ", f = " <<  objFunc.value(x0) << ", ||g||_inf " << gradNorm  << std::endl;
+            // std::cout << "iter: "<<iter<< " f = " <<  objFunc.value(x0) << " ||g||_inf "<<gradNorm   << std::endl;
 
+            if( (x_old-x0).template lpNorm<Eigen::Infinity>() < 1e-7  )
+                break;
             x_old = x0;
             iter++;
 
@@ -58,6 +60,6 @@ class BfgsSolver : public ISolver<T, 1> {
 };
 
 }
-/* namespace cns */
+/* namespace cppoptlib */
 
 #endif /* BFGSSOLVER_H_ */

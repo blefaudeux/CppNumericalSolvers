@@ -6,7 +6,7 @@
 #include "isolver.h"
 #include "../meta.h"
 
-namespace cns {
+namespace cppoptlib {
 
 template<typename T, int Ord>
 class ISolver {
@@ -32,6 +32,6 @@ protected:
 
 };
 
-} /* namespace cns */
+} /* namespace cppoptlib */
 
 #endif /* ISOLVER_H_ */
