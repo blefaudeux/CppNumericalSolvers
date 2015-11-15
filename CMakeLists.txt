@@ -17,10 +17,12 @@ elseif(COMPILER_SUPPORTS_CXX0X)
 else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
+
 # set path to cmake modules
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Modules)
 set(LINKER_LIBS "")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+
 # Google Testing Framework
 add_subdirectory(include/gtest)
 enable_testing()
@@ -30,10 +32,8 @@ include_directories(lib)
 find_package(Eigen3 REQUIRED)
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
-
 add_subdirectory(src/examples)
 add_subdirectory(src/test)
-
 
 add_custom_target(lint COMMAND ${CMAKE_COMMAND} -P ${PROJECT_SOURCE_DIR}/cmake/lint.cmake)
 add_custom_target(install COMMAND ${CMAKE_COMMAND} -P ${PROJECT_SOURCE_DIR}/cmake/install.cmake)

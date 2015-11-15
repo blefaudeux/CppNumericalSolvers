@@ -1,5 +1,5 @@
 # Define the project's name
-project(CppSolver CXX)
+project(CppSolver)
 
 # Add all the files we're interested in (mostly for QTCreator)
 file(GLOB SRC ${PROJECT_SOURCE_DIR}/src/*.cpp)
