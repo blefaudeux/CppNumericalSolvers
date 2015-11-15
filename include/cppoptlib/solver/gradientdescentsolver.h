@@ -6,7 +6,7 @@
 #include "isolver.h"
 #include "../linesearch/morethuente.h"
 
-namespace cns {
+namespace cppoptlib {
 
 template<typename T>
 class GradientDescentSolver : public ISolver<T, 1> {
@@ -36,6 +36,6 @@ class GradientDescentSolver : public ISolver<T, 1> {
 
 };
 
-} /* namespace cns */
+} /* namespace cppoptlib */
 
 #endif /* GRADIENTDESCENTSOLVER_H_ */

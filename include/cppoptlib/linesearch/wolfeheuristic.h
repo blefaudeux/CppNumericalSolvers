@@ -4,7 +4,7 @@
 
 #include "../meta.h"
 
-namespace cns {
+namespace cppoptlib {
 
 /**
  * @brief this tries to guess the correct stepwith in a bisection-style

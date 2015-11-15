@@ -44,6 +44,7 @@ CppNumericalSolvers.config
 
 # subfolders
 /build
+/.idea
 
 # Matlab 
 *.m~

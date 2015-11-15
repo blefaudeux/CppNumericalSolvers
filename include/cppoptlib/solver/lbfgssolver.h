@@ -7,7 +7,7 @@
 #ifndef LBFGSSOLVER_H_
 #define LBFGSSOLVER_H_
 
-namespace cns {
+namespace cppoptlib {
 
 template<typename T>
 class LbfgsSolver : public ISolver<T, 1> {
@@ -114,6 +114,6 @@ class LbfgsSolver : public ISolver<T, 1> {
 };
 
 }
-/* namespace cns */
+/* namespace cppoptlib */
 
 #endif /* LBFGSSOLVER_H_ */

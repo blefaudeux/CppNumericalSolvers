@@ -7,7 +7,7 @@
 #ifndef NEWTONDESCENTSOLVER_H_
 #define NEWTONDESCENTSOLVER_H_
 
-namespace cns {
+namespace cppoptlib {
 
 template<typename T>
 class NewtonDescentSolver : public ISolver<T, 2> {
@@ -39,6 +39,6 @@ class NewtonDescentSolver : public ISolver<T, 2> {
 };
 
 }
-/* namespace cns */
+/* namespace cppoptlib */
 
 #endif /* NEWTONDESCENTSOLVER_H_ */
