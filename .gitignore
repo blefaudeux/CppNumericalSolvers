@@ -54,3 +54,7 @@ CppNumericalSolvers.config
 *.mexw32
 *.mexmaci64
 *.mexglx
+
+#QTCreator
+*.creator
+
