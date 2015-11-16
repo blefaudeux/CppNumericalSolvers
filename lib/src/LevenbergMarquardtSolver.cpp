@@ -20,14 +20,15 @@
  * SOFTWARE.
  */
 
+
 #include "LevenbergMarquardtSolver.h"
 #include <iostream>
-#include <Eigen/LU>
+#include </usr/include/eigen3/unsupported/Eigen/NonLinearOptimization>
+
 namespace pwie
 {
     LevenbergMarquardtSolver::LevenbergMarquardtSolver() : ISolver()
     {
-
     }
 
     void LevenbergMarquardtSolver::internalSolve( Vector & x,
@@ -42,24 +43,12 @@ namespace pwie
             return;
         }
 
-        const size_t DIM = x.rows();
+        // Simply a wrapper to the probably excellent LM implementation in Eigen
 
-        Vector grad = Vector::Zero(DIM);
-        Matrix hessian = Matrix::Zero(DIM, DIM);
+        Eigen::LevenbergMarquardt<function_t> lm(FunctionValue);
 
-        FunctionGradient(x, grad);
-        FunctionHessian(x, hessian);
-
-        size_t iter = 0;
-        do
-        {
-            // TODO: Ben
-            // Include the algorithm from Eigen-unsupported
-            // http://eigen.tuxfamily.org/dox/unsupported/group__NonLinearOptimization__Module.html
-
-            iter++;
-        }
-        while((grad.lpNorm<Eigen::Infinity>() > settings.gradTol) && (iter < settings.maxIter));
+        int const retVal = lm.minimize(x);
+        // TODO: Ben - do some checks...
     }
 }
 
