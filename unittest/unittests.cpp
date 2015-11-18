@@ -9,6 +9,7 @@
 #include "GradientDescentSolver.h"
 #include "ConjugateGradientSolver.h"
 #include "NewtonDescentSolver.h"
+#include "LevenbergMarquardtSolver.h"
 
 #define PRECISION 1e-4
 
@@ -59,6 +60,8 @@ TEST(LbfgsTest, RosenbrockFarNear)              { SOLVE_1stOrder(pwie::LbfgsSolv
 
 TEST(LbfgsbTest, DISABLED_RosenbrockFar)        { SOLVE_1stOrder(pwie::LbfgsbSolver, rosenbrock, 15.0, 8.0, 0.0) }
 TEST(LbfgsbTest, DISABLED_RosenbrockNear)       { SOLVE_1stOrder(pwie::LbfgsbSolver, rosenbrock, -1.2, 1.0, 0.0) }
+
+TEST(LevenbergMarquardtTest, DISABLED_RosenbrockNear)    { SOLVE_1stOrder(pwie::LevenbergMarquardtSolver, rosenbrock, -1.2, 1.0, 0.0) }
 
 int main (int argc, char **argv)
 {

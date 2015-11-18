@@ -12,6 +12,8 @@
 #include "../../include/cppoptlib/solver/lbfgsbsolver.h"
 #include "../../include/cppoptlib/solver/cmaessolver.h"
 #include "../../include/cppoptlib/solver/neldermeadsolver.h"
+#include "../../include/cppoptlib/solver/levenbergmarquardtsolver.h"
+
 #define PRECISION 1e-4
 using namespace cppoptlib;
 
@@ -19,7 +21,7 @@ using namespace cppoptlib;
 template<typename T>
 class RosenbrockValue : public Problem<T> {
   public:
-    
+
     T value(const Vector<T> &x) {
         const T t1 = (1 - x[0]);
         const T t2 = (x[1] - x[0] * x[0]);
@@ -32,7 +34,7 @@ class RosenbrockValue : public Problem<T> {
 template<typename T>
 class RosenbrockGradient : public Problem<T> {
   public:
-    
+
     T value(const Vector<T> &x) {
         const T t1 = (1 - x[0]);
         const T t2 = (x[1] - x[0] * x[0]);
@@ -50,7 +52,7 @@ class RosenbrockGradient : public Problem<T> {
 template<typename T>
 class RosenbrockFull : public Problem<T> {
   public:
-    
+
     T value(const Vector<T> &x) {
         const T t1 = (1 - x[0]);
         const T t2 = (x[1] - x[0] * x[0]);
