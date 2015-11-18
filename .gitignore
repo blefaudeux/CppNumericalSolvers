@@ -43,10 +43,12 @@ CppNumericalSolvers.config
 *.app
 
 # subfolders
-/build
 /.idea
+/build
+/eigen
+/local
 
-# Matlab 
+# Matlab
 *.m~
 *.mexa64
 *.mexa32
