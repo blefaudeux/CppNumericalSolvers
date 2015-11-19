@@ -127,6 +127,8 @@ TEST(NelderMeadTest, RosenbrockFarFull)                      { SOLVE_PROBLEM(cpp
 TEST(NelderMeadTest, RosenbrockNearFull)                     { SOLVE_PROBLEM(cppoptlib::NelderMeadSolver,RosenbrockFull, -1.0, 2.0, 0.0) }
 TEST(NelderMeadTest, RosenbrockMixFull)                      { SOLVE_PROBLEM(cppoptlib::NelderMeadSolver,RosenbrockFull, -1.2, 100.0, 0.0) }
 
+// Ben - initial tests..
+TEST(LevenbergMarquardtTest, RosenbrockNearValue)            { SOLVE_PROBLEM(cppoptlib::LevenbergMarquardtSolver,RosenbrockValue, -1.0, 2.0, 0.0) }
 
 TEST(CentralDifference, Gradient){
     // simple function y <- 3*a-b
