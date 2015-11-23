@@ -199,12 +199,6 @@ Make sure that `make lint` does not display any errors and check if travis is ha
     SOFTWARE.
 
 
-This fork introduces
------------
-- Minor code style changes
-- CMakeLists build chain (hopefully more cross platform)
-- ... (more to come)
-
 
 [eigen3]: http://eigen.tuxfamily.org/
 [matlab]: http://www.mathworks.de/products/matlab/
