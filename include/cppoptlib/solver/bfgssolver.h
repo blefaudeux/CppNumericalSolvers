@@ -28,7 +28,7 @@ class BfgsSolver : public ISolver<T, 1> {
             double phi = grad.dot(searchDir);
 
             // positive definit ?
-            if (phi > 0) {
+            if (phi > 0 || std::isnan(phi)) {
                 // no, we reset the hessian approximation
                 H = Matrix<T>::Identity(DIM, DIM);
                 searchDir = -1 * grad;
