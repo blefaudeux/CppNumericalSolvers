@@ -218,7 +218,6 @@ namespace cppoptlib {
                     Matrix<Dtype> yHistory = Matrix<Dtype>::Zero(DIM, 0);
                     Matrix<Dtype> sHistory = Matrix<Dtype>::Zero(DIM, 0);
                     Vector<Dtype> x = x0, g = x0;
-                    size_t k = 0;
                     Dtype f = objFunc.value(x);
                     objFunc.gradient(x, g);
                     // conv. crit.
@@ -226,7 +225,8 @@ namespace cppoptlib {
                     [&](Vector<Dtype> & x, Vector<Dtype> & g)->bool {
                         return (((x - g).cwiseMax(lboundTemplate).cwiseMin(uboundTemplate) - x).template lpNorm<Eigen::Infinity>() >= 1e-4);
                     };
-                    while (noConvergence(x, g) && (k < this->settings_.maxIter)) {
+    this->m_info.iterations = 0;
+    while (noConvergence(x, g) && (this->m_info.iterations < this->m_ctrl.iterations)) {
                         Dtype f_old = f;
                         Vector<Dtype> x_old = x;
                         Vector<Dtype> g_old = g;
@@ -251,12 +251,12 @@ namespace cppoptlib {
                         Dtype test = newS.dot(newY);
                         test = (test < 0) ? -1.0 * test : test;
                         if (test > 1e-7 * newY.squaredNorm()) {
-                            if (size_t(yHistory.cols()) < this->settings_.m) {
-                                yHistory.conservativeResize(DIM, k + 1);
-                                sHistory.conservativeResize(DIM, k + 1);
+        if (yHistory.cols() < this->m_ctrl.m) {
+          yHistory.conservativeResize(DIM, this->m_info.iterations + 1);
+          sHistory.conservativeResize(DIM, this->m_info.iterations + 1);
                             } else {
-                                yHistory.leftCols(this->settings_.m - 1) = yHistory.rightCols(this->settings_.m - 1).eval();
-                                sHistory.leftCols(this->settings_.m - 1) = sHistory.rightCols(this->settings_.m - 1).eval();
+          yHistory.leftCols(this->m_ctrl.m - 1) = yHistory.rightCols(this->m_ctrl.m - 1).eval();
+          sHistory.leftCols(this->m_ctrl.m - 1) = sHistory.rightCols(this->m_ctrl.m - 1).eval();
                             }
                             yHistory.rightCols(1) = newY;
                             sHistory.rightCols(1) = newS;
@@ -277,7 +277,7 @@ namespace cppoptlib {
                             // successive function values too similar
                             break;
                         }
-                        k++;
+      ++this->m_info.iterations;
                     }
                     x0 = x;
                 }
